@@ -277,12 +277,19 @@ proc runRoblox*(input: Input, config: Config) =
       discard client.connect()
 
       client.setActivity(
-        Activity(
-          details: "Playing Roblox with Roblox (Sober)",
-          state: "In the Roblox app",
-          timestamps: ActivityTimestamps(start: startingTime.int64),
-        )
+  Activity(
+    details: "Playing Roblox",
+    state: "In the Roblox app",
+    timestamps: ActivityTimestamps(start: epochTime().int64),
+    assets: some(
+      ActivityAssets(
+        largeImage: "roblox_icon",  # Image key in your Discord app's assets
+        largeText: "Roblox"
       )
+    )
+  )
+)
+
 
       discord = some(move(client))
     except CatchableError as exc:
