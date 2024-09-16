@@ -108,7 +108,7 @@ proc onGameJoin*(
         state: "by " & data.creator.name,
         assets: some(
           ActivityAssets(
-            largeImage: icon.imageUrl, largeText: "Roblox"
+            largeText: "Roblox"
           )
         ),
         timestamps: ActivityTimestamps(start: startedAt.int64),
@@ -283,7 +283,6 @@ proc runRoblox*(input: Input, config: Config) =
     timestamps: ActivityTimestamps(start: epochTime().int64),
     assets: some(
       ActivityAssets(
-        largeImage: "roblox_icon",  # Image key in your Discord app's assets
         largeText: "Roblox"
       )
     )
