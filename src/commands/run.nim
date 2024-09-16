@@ -13,20 +13,20 @@ const FFlagsFile* =
 let fflagsFile = FFlagsFile % [getHomeDir(), SOBER_APP_ID]
 
 proc updateConfig*(input: Input, config: Config) =
-  info "lucem: updating config"
+  info "Roblox: updating config"
   if not fileExists(fflagsFile):
-    error "lucem: could not open pre-existing FFlags file. Run `lucem init` first."
+    error "Roblox: could not open pre-existing FFlags file. Run `Roblox init` first."
     quit(1)
 
   var fflags = readFile(fflagsFile).parseJson()
 
-  info "lucem: target FPS is set to: " & $config.client.fps
+  info "Roblox: target FPS is set to: " & $config.client.fps
   fflags["DFIntTaskSchedulerTargetFps"] = newJInt(int(config.client.fps))
 
   if not config.client.telemetry:
-    info "lucem: disabling telemetry FFlags"
+    info "Roblox: disabling telemetry FFlags"
   else:
-    warn "lucem: enabling telemetry FFlags. This is not recommended!"
+    warn "Roblox: enabling telemetry FFlags. This is not recommended!"
   
   if not input.enabled("skip-patching", "N"):
     enableOldOofSound(config.tweaks.oldOof)
@@ -35,7 +35,7 @@ proc updateConfig*(input: Input, config: Config) =
     setSunTexture(config.tweaks.sun)
     setMoonTexture(config.tweaks.moon)
   else:
-    info "lucem: skipping patching (--skip-patching or -S was provided)"
+    info "Roblox: skipping patching (--skip-patching or -S was provided)"
 
   for flag in [
     "FFlagDebugDisableTelemetryEphemeralCounter",
@@ -43,7 +43,7 @@ proc updateConfig*(input: Input, config: Config) =
     "FFlagDebugDisableTelemetryPoint", "FFlagDebugDisableTelemetryV2Counter",
     "FFlagDebugDisableTelemetryV2Event", "FFlagDebugDisableTelemetryV2Stat",
   ]:
-    debug "lucem: set flag `" & flag & "` to " & $(not config.client.telemetry)
+    debug "Roblox: set flag `" & flag & "` to " & $(not config.client.telemetry)
     fflags[flag] = newJBool(not config.client.telemetry)
 
   parseFFlags(config, fflags)
@@ -71,9 +71,9 @@ proc onGameJoin*(
     else:
       jdata &= c
 
-  debug "lucem: join metadata: " & jdata
+  debug "Roblox: join metadata: " & jdata
 
-  if config.lucem.discordRpc and *discord:
+  if config.Roblox.discordRpc and *discord:
     let
       placeId = $parseJson(jdata)["placeId"].getInt()
       universeId = getUniverseFromPlace(placeId)
@@ -83,18 +83,18 @@ proc onGameJoin*(
       thumbnail = getGameIcon(universeId)
 
     if !gameData:
-      warn "lucem: failed to fetch game data; RPC will not be set."
+      warn "Roblox: failed to fetch game data; RPC will not be set."
       return
 
     if !thumbnail:
-      warn "lucem: failed to fetch game thumbnail; RPC will not be set."
+      warn "Roblox: failed to fetch game thumbnail; RPC will not be set."
       return
 
     let
       data = &gameData
       icon = &thumbnail
 
-    info "lucem: Joined game!"
+    info "Roblox: Joined game!"
     info "Name: " & data.name
     info "Description: " & data.description
     info "Price: " & $(if *data.price: &data.price else: 0'i64) & " robux"
@@ -104,11 +104,11 @@ proc onGameJoin*(
 
     client.setActivity(
       Activity(
-        details: "Playing " & data.name,
+        details: "Playing Roblox",
         state: "by " & data.creator.name,
         assets: some(
           ActivityAssets(
-            largeImage: icon.imageUrl, largeText: "Sober + Lucem v" & Version
+            largeText: "Roblox"
           )
         ),
         timestamps: ActivityTimestamps(start: startedAt.int64),
@@ -116,14 +116,14 @@ proc onGameJoin*(
     )
 
 proc onServerIpRevealed*(config: Config, line: string) =
-  if not config.lucem.notifyServerRegion:
+  if not config.Roblox.notifyServerRegion:
     return
 
   var
     buffer: string
     pos = -1
 
-  debug "lucem: server IP line buffer: " & line
+  debug "Roblox: server IP line buffer: " & line
 
   while pos < line.len - 1:
     inc pos
@@ -133,10 +133,10 @@ proc onServerIpRevealed*(config: Config, line: string) =
 
     buffer &= line[pos]
 
-  debug "lucem: server IP line buffer stopped before splitting at: " & $pos
+  debug "Roblox: server IP line buffer stopped before splitting at: " & $pos
   let serverIp = line[pos ..< line.len].split(',')[0].split(':')[0]
     # discard port, we don't need it.
-  debug "lucem: server IP is: " & serverIp
+  debug "Roblox: server IP is: " & serverIp
 
   if (let ipinfo = getIpInfo(serverIp); *ipinfo):
     let data = &ipinfo
@@ -146,11 +146,11 @@ proc onServerIpRevealed*(config: Config, line: string) =
       10000,
     )
   else:
-    warn "lucem: failed to get server location data!"
+    warn "Roblox: failed to get server location data!"
     notify("Server Location", "Failed to fetch server location data.", 10000)
 
 proc onGameLeave*(config: Config, discord: Option[DiscordRPC]) =
-  debug "lucem: left experience"
+  debug "Roblox: left experience"
 
   if !discord:
     return
@@ -158,21 +158,26 @@ proc onGameLeave*(config: Config, discord: Option[DiscordRPC]) =
   let client = &discord
 
   client.setActivity(
-    Activity(
-      details: "Playing Roblox with Lucem (Sober)",
-      state: "In the Roblox app",
-      timestamps: ActivityTimestamps(start: epochTime().int64),
+  Activity(
+    details: "Playing Roblox",
+    state: "In the Roblox app",
+    timestamps: ActivityTimestamps(start: epochTime().int64),
+    assets: some(
+      ActivityAssets(
+        largeText: "Roblox"
+      )
     )
   )
+)
 
 proc onBloxstrapRpc*(config: Config, discord: Option[DiscordRPC], line: string) =
-  debug "lucem: trying to extract BloxstrapRPC payload from line"
-  debug "lucem: " & line
+  debug "Roblox: trying to extract BloxstrapRPC payload from line"
+  debug "Roblox: " & line
   let payload = line.split("[FLog::Output] [BloxstrapRPC]")
 
   if payload.len < 2:
-    warn "lucem: failed to obtain BloxstrapRPC JSON payload as split results in one or less element."
-    warn "lucem: " & line
+    warn "Roblox: failed to obtain BloxstrapRPC JSON payload as split results in one or less element."
+    warn "Roblox: " & line
     return
 
 proc eventWatcher*(
@@ -193,7 +198,7 @@ proc eventWatcher*(
     verbose = true
     setLogFilter(lvlAll)
 
-  info "lucem: this is the event watcher thread, running at thread ID " & $getThreadId()
+  info "Roblox: this is the event watcher thread, running at thread ID " & $getThreadId()
 
   var
     line = 0
@@ -216,20 +221,20 @@ proc eventWatcher*(
       echo data
 
     if data.contains("OnLoad: ... Done"):
-      debug "lucem: this is the event watcher thread - Sober has been initialized! Acquiring lock to loading screen state pointer and setting it to `WaitingForRoblox`"
+      debug "Roblox: this is the event watcher thread - Sober has been initialized! Acquiring lock to loading screen state pointer and setting it to `WaitingForRoblox`"
 
       withLock args.slock[]:
         args.state[] = WaitingForRoblox
 
-      debug "lucem: released loading screen state pointer lock"
+      debug "Roblox: released loading screen state pointer lock"
 
     if data.contains("[FLog::Graphics] Vulkan: creating framebuffer"):
-      debug "lucem: this is the event watcher thread - Roblox has initialized a surface! Acquiring lock to loading screen state pointer and setting it to `Done`"
+      debug "Roblox: this is the event watcher thread - Roblox has initialized a surface! Acquiring lock to loading screen state pointer and setting it to `Done`"
 
       withLock args.slock[]:
         args.state[] = Done
 
-      debug "lucem: released loading screen state pointer lock"
+      debug "Roblox: released loading screen state pointer lock"
 
     if data.contains(
       "[FLog::GameJoinUtil] GameJoinUtil::joinGamePostStandard: URL: https://gamejoin.roblox.com/v1/join-game BODY:"
@@ -250,48 +255,52 @@ proc eventWatcher*(
         data.contains("[FLog::Network] Connection lost - Cannot contact server/client"):
       onGameLeave(args.config, args.discord)
 
-    sleep(args.config.lucem.pollingDelay.int)
-    hasntStarted = false
     inc line
 
   withLock args.slock[]:
     args.state[] = Exited
 
-  info "lucem: Sober seems to have exited - we'll stop here too. Adios!"
+  info "Roblox: Sober seems to have exited - we'll stop here too. Adios!"
 
 proc runRoblox*(input: Input, config: Config) =
   var startingTime = epochTime()
-  info "lucem: running Roblox via Sober"
+  info "Roblox: running Roblox via Sober"
 
   writeFile(getSoberLogPath(), newString(0))
   var discord: Option[DiscordRPC]
 
-  if config.lucem.discordRpc:
-    info "lucem: connecting to Discord RPC"
+  if config.Roblox.discordRpc:
+    info "Roblox: connecting to Discord RPC"
     var client = newDiscordRPC(DiscordRpcId.int64)
 
     try:
       discard client.connect()
 
       client.setActivity(
-        Activity(
-          details: "Playing Roblox with Lucem (Sober)",
-          state: "In the Roblox app",
-          timestamps: ActivityTimestamps(start: startingTime.int64),
-        )
+  Activity(
+    details: "Playing Roblox",
+    state: "In the Roblox app",
+    timestamps: ActivityTimestamps(start: epochTime().int64),
+    assets: some(
+      ActivityAssets(
+        largeText: "Roblox"
       )
+    )
+  )
+)
+
 
       discord = some(move(client))
     except CatchableError as exc:
-      warn "lucem: unable to connect to Discord RPC: " & exc.msg
+      warn "Roblox: unable to connect to Discord RPC: " & exc.msg
 
-  debug "lucem: initialize lock that guards `LoadingState` pointer"
+  debug "Roblox: initialize lock that guards `LoadingState` pointer"
   var slock: Lock
   initLock(slock)
 
   var state {.guard: slock.} = WaitingForLaunch
 
-  debug "lucem: creating event watcher thread"
+  debug "Roblox: creating event watcher thread"
   var evThr: Thread[
     tuple[
       state: ptr LoadingState,
@@ -303,15 +312,15 @@ proc runRoblox*(input: Input, config: Config) =
   ]
   createThread(evThr, eventWatcher, (addr state, addr slock, discord, config, input))
   
-  info "lucem: redirecting sober logs to: " & getSoberLogPath()
+  info "Roblox: redirecting sober logs to: " & getSoberLogPath()
   discard flatpakRun(SOBER_APP_ID, getSoberLogPath(), config.client.launcher)
 
-  if config.lucem.loadingScreen:
-    debug "lucem: creating loading screen GTK4 surface"
+  if config.Roblox.loadingScreen:
+    debug "Roblox: creating loading screen GTK4 surface"
     initLoadingScreen(addr state, slock)
 
-  debug "lucem: loading screen has ended, waiting for event watcher thread to exit or die."
+  debug "Roblox: loading screen has ended, waiting for event watcher thread to exit or die."
   evThr.joinThread()
 
-  debug "lucem: event watcher thread has exited."
+  debug "Roblox: event watcher thread has exited."
   quit(0)
