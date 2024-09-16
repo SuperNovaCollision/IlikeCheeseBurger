@@ -158,12 +158,17 @@ proc onGameLeave*(config: Config, discord: Option[DiscordRPC]) =
   let client = &discord
 
   client.setActivity(
-    Activity(
-      details: "Playing Roblox with Roblox (Sober)",
-      state: "In the Roblox app",
-      timestamps: ActivityTimestamps(start: epochTime().int64),
+  Activity(
+    details: "Playing Roblox",
+    state: "In the Roblox app",
+    timestamps: ActivityTimestamps(start: epochTime().int64),
+    assets: some(
+      ActivityAssets(
+        largeText: "Roblox"
+      )
     )
   )
+)
 
 proc onBloxstrapRpc*(config: Config, discord: Option[DiscordRPC], line: string) =
   debug "Roblox: trying to extract BloxstrapRPC payload from line"
